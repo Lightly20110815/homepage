@@ -6,7 +6,6 @@
     @mouseleave="openMusicShow = false"
     @click.stop
   >
-    <!-- 打开音乐面板 -->
     <Transition name="el-fade-in-linear">
       <div
         class="open-music"
@@ -14,10 +13,9 @@
         @click="store.musicOpenState = true"
       >
         <music-menu theme="filled" size="18" fill="#efefef" />
-        <span>打开音乐播放器</span>
+        <span>播放音乐</span>
       </div>
     </Transition>
-    <!-- 一言内容 -->
     <Transition name="el-fade-in-linear" mode="out-in">
       <div :key="hitokotoData.text" class="content" @click="updateHitokoto">
         <span class="text">{{ hitokotoData.text }}</span>
@@ -28,10 +26,11 @@
 </template>
 
 <script setup>
-import { MusicMenu, Error } from "@icon-park/vue-next";
+import { MusicMenu, Error as ErrorIcon } from "@icon-park/vue-next";
 import { getHitokoto } from "@/api";
 import { mainStore } from "@/store";
 import debounce from "@/utils/debounce.js";
+import { ref, reactive, onMounted, h } from 'vue';
 
 const store = mainStore();
 
@@ -40,26 +39,40 @@ const openMusicShow = ref(false);
 
 // 一言数据
 const hitokotoData = reactive({
-  text: "这里应该显示一句话",
-  from: "無名",
+  // 初始值也应该与失败时的文本保持一致，或者是一个通用的加载提示
+  text: "With you, through all.", // 初始文本设置为您的自定义句子
+  from: "Sy Yann",
 });
 
 // 获取一言数据
 const getHitokotoData = async () => {
   try {
     const result = await getHitokoto();
-    hitokotoData.text = result.hitokoto;
-    hitokotoData.from = result.from;
+    if (result && result.hitokoto) {
+      hitokotoData.text = result.hitokoto;
+      hitokotoData.from = result.from || "Sy Yann"; 
+    } else {
+      console.warn("一言API返回数据格式不正确，使用默认文本。");
+      hitokotoData.text = "With you, through all."; // API返回数据格式不正确时也使用您的句子
+      hitokotoData.from = "Sy Yann";
+    }
   } catch (error) {
-    ElMessage({
-      message: "一言获取失败",
-      icon: h(Error, {
-        theme: "filled",
-        fill: "#efefef",
-      }),
-    });
-    hitokotoData.text = "这里应该显示一句话";
-    hitokotoData.from = "無名";
+    console.error("一言获取失败：", error);
+    if (typeof ElMessage !== 'undefined') {
+      ElMessage({
+        message: "一言加载失败，请稍后再试",
+        icon: h(ErrorIcon, {
+          theme: "filled",
+          fill: "#efefef",
+        }),
+      });
+    } else {
+      console.warn("ElMessage未定义，无法显示错误提示。");
+    }
+    
+    // 一言获取失败时使用您的自定义句子
+    hitokotoData.text = "With you, through all."; 
+    hitokotoData.from = "Sy Yann";
   }
 };
 
