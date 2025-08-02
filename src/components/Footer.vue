@@ -1,3 +1,22 @@
+<script setup>
+import { MusicOne } from "@icon-park/vue-next";
+import { mainStore } from "@/store";
+
+const store = mainStore();
+const fullYear = new Date().getFullYear();
+
+// 加载配置数据
+const startYear = ref(
+  import.meta.env.VITE_SITE_START?.length >= 4
+    ? import.meta.env.VITE_SITE_START.substring(0, 4)
+    : null
+);
+const siteIcp = ref(import.meta.env.VITE_SITE_ICP);
+const siteAuthor = ref(import.meta.env.VITE_SITE_AUTHOR);
+
+// 注意：下面的模板中已不再使用 siteUrl，因为链接已被直接修改
+</script>
+
 <template>
   <footer id="footer" :class="store.footerBlur ? 'blur' : null">
     <Transition name="fade" mode="out-in">
@@ -5,25 +24,16 @@
         <span>
           <span :class="startYear < fullYear ? 'c-hidden' : 'hidden'">Copyright&nbsp;</span>
           &copy;
-          <span v-if="startYear < fullYear"
-            class="site-start">
+          <span v-if="startYear < fullYear" class="site-start">
             {{ startYear }}
             -
           </span>
           {{ fullYear }}
-          <a :href="siteUrl">{{ siteAuthor }}</a>
+          <a href="https://ddnsy.fun" target="_blank">{{ siteAuthor }}</a>
         </span>
-        <!-- 以下信息请不要修改哦 -->
-        <span class="hidden">
-          &amp;&nbsp;Made&nbsp;by
-          <a :href="config.github" target="_blank">
-            {{ config.author }}
-          </a>
-        </span>
-        <!-- 站点备案 -->
-        <span>
+        <span v-if="siteIcp">
           &amp;
-          <a v-if="siteIcp" href="https://beian.miit.gov.cn" target="_blank">
+          <a href="https://icp.gov.moe/?keyword=20250733" target="_blank">
             {{ siteIcp }}
           </a>
         </span>
@@ -41,34 +51,8 @@
   </footer>
 </template>
 
-<script setup>
-import { MusicOne } from "@icon-park/vue-next";
-import { mainStore } from "@/store";
-import config from "@/../package.json";
-
-const store = mainStore();
-const fullYear = new Date().getFullYear();
-
-// 加载配置数据
-// const siteStartDate = ref(import.meta.env.VITE_SITE_START);
-const startYear = ref(
-  import.meta.env.VITE_SITE_START?.length >= 4 ? 
-  import.meta.env.VITE_SITE_START.substring(0, 4) : null
-);
-const siteIcp = ref(import.meta.env.VITE_SITE_ICP);
-const siteAuthor = ref(import.meta.env.VITE_SITE_AUTHOR);
-const siteUrl = computed(() => {
-  const url = import.meta.env.VITE_SITE_URL;
-  if (!url) return "https://www.imsyy.top";
-  // 判断协议前缀
-  if (!url.startsWith("http://") && !url.startsWith("https://")) {
-    return "//" + url;
-  }
-  return url;
-});
-</script>
-
 <style lang="scss" scoped>
+/* 样式部分保持不变 */
 #footer {
   width: 100%;
   position: absolute;
@@ -79,7 +63,6 @@ const siteUrl = computed(() => {
   text-align: center;
   z-index: 0;
   font-size: 14px;
-  // 文字不换行
   word-break: keep-all;
   white-space: nowrap;
   .power {
